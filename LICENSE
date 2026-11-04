@@ -1,0 +1,53 @@
+UAV Non-Commercial License 1.0
+
+Copyright (c) 2026 UAV contributors. All rights reserved.
+
+Scope
+-----
+This license applies to original UAV code and documentation, except where a
+file or component carries a different license or third-party notice. It grants
+no rights to third-party code, model weights, datasets, trademarks or other
+materials beyond those granted by their respective rights holders. Retained
+third-party code and modifications derived from it remain subject to the
+applicable third-party terms. See THIRD_PARTY_NOTICES.md and the accompanying
+license files.
+
+Permission and conditions
+-------------------------
+Redistribution and use of the covered software in source and binary forms,
+with or without modification, are permitted for non-commercial purposes only,
+provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice,
+   this license, and the disclaimer below.
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this license, and the disclaimer below in the documentation and/or other
+   materials provided with the distribution.
+3. Modified versions must carry a prominent notice that they have been changed.
+4. Neither the name of the copyright holders nor the names of contributors may
+   be used to endorse or promote derived products without prior written
+   permission.
+5. Commercial use or commercial redistribution requires separate prior written
+   permission from the rights holders of the covered software. Non-commercial
+   means not primarily intended for or directed toward commercial advantage
+   or monetary compensation. This license does not permit using the software
+   to provide a paid product or service, or as part of a revenue-generating
+   business operation. If your intended use is unclear, obtain written
+   permission before proceeding.
+6. Permission from UAV contributors does not authorize commercial use of any
+   third-party component. Obtain any required permissions separately from the
+   respective rights holders.
+
+Disclaimer
+----------
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.

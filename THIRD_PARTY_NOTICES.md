@@ -1,5 +1,12 @@
 # Third-party notices
 
+The root UAV Non-Commercial License applies only to original UAV material.
+It does not replace or restrict the original licenses of third-party material.
+Third-party-derived modifications remain subject to the applicable upstream
+terms. Model weights are not distributed with this repository. Permission
+from UAV contributors alone does not authorize commercial use of third-party
+components or weights.
+
 ## ProPainter
 
 Source: https://github.com/sczhou/ProPainter

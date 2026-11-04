@@ -2,7 +2,7 @@
 
 UAV 自动检测视频水印，用共享模板生成逐帧 mask，再由 ProPainter 修复。Python API、CLI 和 Docker 统一使用新实现，旧 mask 引擎已删除。
 
-第三方代码和权重沿用各自许可，见 [第三方声明](THIRD_PARTY_NOTICES.md)。ProPainter 采用含非商业使用限制的 S-Lab License；整个处理流程不能视为不受限制的商用软件。UAV 自有代码的根许可证尚待维护者确定，当前源码为发布准备版本。
+UAV 自有代码采用 [UAV Non-Commercial License 1.0](LICENSE)，允许非商业使用、修改和分发，商用需另行取得权利人书面授权。由于限制商用，本项目属于源码公开项目，不属于 OSI 定义的开源软件。第三方代码和权重沿用各自许可，见 [第三方声明](THIRD_PARTY_NOTICES.md)：ProPainter 含非商业使用限制，SAM3 适用 SAM License，RAFT 和 CudaSift 分别适用 BSD-3-Clause 和 MIT。UAV 的许可不替代第三方许可，也不授予第三方组件的商用权利。
 
 ## 运行
 
