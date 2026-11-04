@@ -172,8 +172,10 @@ def review_layout(shape):
     vertical = w >= h
     # H.264 yuv420 requires even dimensions; pad at most one row/column.
     pw, ph = w+w%2, h+h%2
+    header=96
     return dict(axis=0 if vertical else 1, width=pw if vertical else pw*2,
-                height=ph*2 if vertical else ph, panel_width=pw, panel_height=ph,
+                height=(ph+header)*2 if vertical else ph+header, panel_width=pw, panel_height=ph+header,
+                header_height=header,
                 first='上方' if vertical else '左侧', final='下方' if vertical else '右侧',
                 native_width=w, native_height=h, box_thickness=1, crf=18)
 
@@ -245,7 +247,8 @@ def write_review(engine, frames, output, skipped=False, *, filename='mask-review
                                 (final, ('STAGE 2 / SKIPPED DIAGNOSTIC' if skipped else 'STAGE 2 / FINAL MASK')+dilation_label))):
                 # Orange denotes the FULL conservative contribution, including
                 # overlap with reliable coverage; it is not just the added rim.
-                panel = panels[index][:h,:w]
+                header=layout['header_height']
+                panel = panels[index][header:header+h,:w]
                 panel[:]=original
                 if mask is not None:
                     overlay=(first_overlay if index==0 else MaskOverlay(mask,[140,240,40],.35))
@@ -272,12 +275,13 @@ def write_review(engine, frames, output, skipped=False, *, filename='mask-review
                     cv2.putText(panel, f"I{mark['instance']}/T{mark['template']} {mark['status']}",
                         (max(0, l), max(42, t-4)), cv2.FONT_HERSHEY_SIMPLEX, .45, shade, 1)
                 messages = uncertainty_banner(engine.render_metrics.get(frame, {})) if index == 1 else []
-                cv2.rectangle(panel, (0, 0), (pw, 44+16*min(3, len(messages))), (0, 0, 0), -1)
-                cv2.putText(panel, title+f' f={frame}', (5, 19), cv2.FONT_HERSHEY_SIMPLEX, .4, (255, 255, 255), 1)
-                cv2.putText(panel, 'DASHED: FULL PATH',
+                heading=panels[index][:header,:pw]
+                heading[:]=0
+                cv2.putText(heading, title+f' f={frame}', (5, 19), cv2.FONT_HERSHEY_SIMPLEX, .4, (255, 255, 255), 1)
+                cv2.putText(heading, 'DASHED: FULL PATH',
                     (5, 36), cv2.FONT_HERSHEY_SIMPLEX, .38, (220, 220, 220), 1)
                 for line, message in enumerate(messages[:3]):
-                    cv2.putText(panel, message, (5, 52+line*16), cv2.FONT_HERSHEY_SIMPLEX, .38, (30, 170, 255), 1)
+                    cv2.putText(heading, message, (5, 52+line*16), cv2.FONT_HERSHEY_SIMPLEX, .38, (30, 170, 255), 1)
             combined.write(memoryview(canvas).cast('B'))
             if frame % engine.config.global_stride == 0:
                 print(json.dumps(dict(event='template_review', frame=frame, frames=frames.count, skipped=skipped)), flush=True)

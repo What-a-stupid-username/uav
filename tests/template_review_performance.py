@@ -13,6 +13,8 @@ class ReviewVideoTests(unittest.TestCase):
     def test_one_input_and_one_combined_native_output_in_both_layouts(self):
         for shape in ((1080,1920),(1281,715)):
             layout=review_layout(shape)
+            self.assertGreaterEqual(layout['header_height'],96)
+            self.assertGreaterEqual(layout['panel_height'],shape[0]+layout['header_height'])
             with patch('uav.ffmpeg.executable',return_value='ffmpeg'):
                 command=encoder_command(Path('/synthetic'),'mask-review.mp4',layout,24)
             self.assertEqual(command.count('-i'),1)
