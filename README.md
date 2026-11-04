@@ -1,89 +1,98 @@
 # UAV · Unmark Any Video
 
-自动去除视频中的文字水印和 logo，无需手动画框或提供 mask。
+Remove text watermarks and logos from videos automatically. No boxes or masks to draw.
 
-支持静止角标、移动、旋转和间歇出现的水印。使用 **SAM3 检测 + SIFT 跟踪与共享模板 + ProPainter 修复**：先找到水印并补齐逐帧 mask，再利用相邻帧恢复背景。
+UAV combines **SAM3 detection, SIFT tracking and shared watermark templates, and ProPainter video inpainting**. It handles static corner marks, moving text, rotating logos, and watermarks that appear intermittently.
 
 ## Demo
 
-同一段视频包含静止角标、移动文字、闪现文字和旋转 logo。左：输入；右：修复结果。
+One clip with four watermark behaviors. Processed with `high quality`. The animations below play directly in this README; full-resolution MP4 files are included in `docs/demo/`.
 
-![输入与修复结果](docs/demo/preview.gif)
+### Input
 
-[原视频](docs/demo/input.mp4) · [Debug：检测、轨迹与 mask](docs/demo/debug.mp4) · [修复结果](docs/demo/result.mp4)
+![Watermarked input](docs/demo/input.gif)
 
-12 秒，640×360，24 fps，使用高质量模式。背景来自 Blender 的《Big Buck Bunny》（CC BY 3.0），水印为脚本生成。素材来源和复现方法见 [Demo 说明](docs/demo/README.md)。
+### Debug
 
-## 如何工作
+Top: detection and tracking. Bottom: final masks and corrected tracks.
 
-1. **发现与跟踪**：SAM3 每 8 帧检测一次，SIFT 跟踪各个水印的位置、旋转和尺度。同一种水印的多个实例共享模板。
-2. **补全 mask**：结合前后轨迹关联残片、补查缺口，对每个共享模板选最多 8 份原图精修并融合。
-3. **修复视频**：ProPainter 通过光流对齐邻帧背景，填补 mask 区域。长视频自动分段，段间重叠融合。
+![Detection, tracking, and final masks](docs/demo/debug.gif)
 
-## 快速开始
+### Result
 
-需要 Linux、NVIDIA GPU、Docker 和 NVIDIA Container Toolkit。开发环境为 RTX 2080 Ti（11 GB）；显存需求随分辨率和水印面积变化。
+![Watermarks removed](docs/demo/result.gif)
 
-### 1. 获取代码并构建环境
+12 seconds · 640×360 · 24 fps. Background: *Big Buck Bunny*, © 2008 Blender Foundation, CC BY 3.0. Watermarks and logo are synthetic. [Source and reproduction](docs/demo/README.md).
+
+## Try it
+
+Requires Linux, an NVIDIA GPU, Docker, and NVIDIA Container Toolkit. Developed on an RTX 2080 Ti with 11 GB VRAM; memory usage depends on resolution and mask area.
+
+### 1. Build
 
 	git clone https://github.com/What-a-stupid-username/uav.git
 	cd uav
 	docker build -t uav:local .
 
-### 2. 准备权重
+### 2. Download weights
 
-权重需自行下载，放到以下位置：
-
-| 文件 | 下载来源 |
+| File | Source |
 | --- | --- |
-| models/sam3/sam3.pt | [Meta SAM3](https://huggingface.co/facebook/sam3)，需申请访问 |
-| models/propainter/ProPainter.pth | [ProPainter Releases](https://github.com/sczhou/ProPainter/releases/tag/v0.1.0) |
-| models/propainter/raft-things.pth | 同上 |
-| models/propainter/recurrent_flow_completion.pth | 同上 |
+| `models/sam3/sam3.pt` | [Meta SAM3](https://huggingface.co/facebook/sam3); access approval required |
+| `models/propainter/ProPainter.pth` | [ProPainter release](https://github.com/sczhou/ProPainter/releases/tag/v0.1.0) |
+| `models/propainter/raft-things.pth` | Same release |
+| `models/propainter/recurrent_flow_completion.pth` | Same release |
 
-### 3. 运行
+### 3. Run the included demo
+
+	./docker/run.sh "$(realpath docs/demo/input.mp4)" ./demo-output --high-quality --debug
+
+Output: `demo-output/clip-01/repaired.mp4`. Open `demo-output/clip-01/index.html` for masks, tracks, and template views.
+
+For your own video:
 
 	./docker/run.sh /absolute/path/input.mp4 ./output
 
-结果位于 **output/clip-01/repaired.mp4**，运行报告为 output/report.json。每次使用新的输出目录。首次运行会构建 TensorRT 引擎和编译 CUDA 算子，后续复用缓存。
+Use a fresh output directory for each run. The first run builds TensorRT engines and compiles CUDA kernels; later runs reuse the caches.
 
-## 质量与调试
+## How it works
 
-| 模式 | 修复分辨率 | 时间窗口重叠 | RAFT 迭代 |
+1. **Detect and track.** SAM3 discovers watermarks every eight frames. SIFT estimates position, rotation, and scale. Instances of the same watermark share a template.
+2. **Build masks.** A second pass associates fragments and repairs trajectory gaps. Up to eight original-image views refine each shared template into a mask.
+3. **Restore the background.** ProPainter aligns neighboring frames with optical flow and fills the masked regions. Long videos are processed in overlapping segments.
+
+## Quality options
+
+| Mode | Inpainting resolution | Window overlap | RAFT iterations |
 | --- | --- | --- | --- |
-| 默认 | 原宽高的 70% | 3 帧 | 4 次 |
-| --high-quality | 原分辨率 | 5 帧 | 8 次 |
+| Default | 70% of input width and height | 3 frames | 4 |
+| `--high-quality` | Original resolution | 5 frames | 8 |
 
-	# 高质量修复
-	./docker/run.sh /absolute/path/input.mp4 ./output-hq --high-quality
+	./docker/run.sh /absolute/input.mp4 ./output-hq --high-quality
+	./docker/run.sh /absolute/input.mp4 ./output-debug --debug
+	./docker/run.sh /absolute/input.mp4 ./output-masks --no-repair
 
-	# 生成 mask、轨迹与模板审核页面
-	./docker/run.sh /absolute/path/input.mp4 ./output-debug --debug
+`--debug` writes the mask/trajectory review page. `--no-repair` exports masks without inpainting.
 
-	# 只生成 mask
-	./docker/run.sh /absolute/path/input.mp4 ./output-masks --no-repair
-
-Debug 页面位于 output-debug/clip-01/index.html，包含 Stage1/Stage2 对照和模板图片。较长视频的入口为 output-debug/index.html。
-
-## 批处理与 Python
+## Batch processing and Python
 
 	./docker/batch.sh ./batch-output /absolute/a.mp4 /absolute/b.mp4
 
-在配套 Python/CUDA 环境中：
+In the UAV Python/CUDA environment:
 
 	from uav import UAVConfig, run
 
 	report = run("input.mp4", "output", UAVConfig.high_quality())
 
-批处理会复用模型，单个视频失败不影响后续视频。常驻 worker、参数和报告格式见 [使用说明](docs/usage.md)。
+Batch jobs reuse model weights. See the [usage guide](docs/usage.md) for the persistent worker, parameters, and report format.
 
-## 当前限制
+## Limitations
 
-- 默认输出 24 fps，保留画面尺寸，**暂不保留音频**。
-- 默认按 15 秒分段，相邻段重叠 1 秒；短尾段会并入上一段。
-- 淡水印、复杂背景和缺少特征的水印可能漏检或误检；大面积遮挡无法保证恢复原始细节。
-- 默认跳过检测框覆盖超过画面 15% 的视频，可调整面积阈值，见使用说明。
+- Output defaults to 24 fps at the original frame size. **Audio is not preserved.**
+- Long videos use 15-second segments with one second of overlap; short tails extend the preceding segment.
+- Faint or feature-poor marks can be missed. Large occlusions and complex backgrounds may leave artifacts.
+- A startup check skips videos whose detected watermark boxes cover more than 15% of the frame. Thresholds are configurable.
 
-## 许可
+## License
 
-[非商业使用](LICENSE)。SAM3、ProPainter 等组件保留各自许可，详见 [第三方声明](THIRD_PARTY_NOTICES.md)。
+[Non-commercial use](LICENSE). SAM3, ProPainter, and other dependencies retain their own licenses; see [third-party notices](THIRD_PARTY_NOTICES.md).
