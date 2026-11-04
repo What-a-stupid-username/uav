@@ -47,7 +47,7 @@ conservative 使用有界保守覆盖，完全无法定位时跳过；skip 遇�
 ## Python 批处理
 
 	from uav import UAVConfig, run_batch
-	
+
 	report = run_batch(["a.mp4", "b.mp4"], "batch-output", UAVConfig())
 
 ## 环境与缓存
