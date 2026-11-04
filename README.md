@@ -8,7 +8,7 @@ Built for fast GPU inference and consistent masks across frames: shared template
 
 ## Demo
 
-One clip with four watermark behaviors. Processed with `high quality`. The animations below play directly in this README; full-resolution MP4 files are included in `docs/demo/`.
+One clip with four watermark behaviors. Full-resolution MP4 files are included in `docs/demo/`.
 
 ### Input
 
