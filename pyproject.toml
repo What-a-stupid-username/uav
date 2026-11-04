@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+[project]
+name = "uav-video"
+version = "0.1.0"
+description = "Unattended video watermark removal with SAM3 and ProPainter"
+readme = "README.md"
+requires-python = ">=3.11"
+dynamic = ["dependencies"]
+[project.scripts]
+uav = "uav.cli:main"
+[tool.setuptools.packages.find]
+include = ["uav*"]
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+
+[tool.setuptools.package-data]
+"uav.propainter" = ["LICENSE"]
+"uav.propainter.video" = ["LICENSE"]
+"uav.propainter.video.raft" = ["LICENSE"]
+
+"uav" = ["csrc/*.cu", "csrc/cudasift/*"]
+"uav.template_mask" = ["*.cpp"]

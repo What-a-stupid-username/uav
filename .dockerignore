@@ -1,0 +1,12 @@
+.git
+__pycache__
+*.pyc
+models
+output
+cache
+tmp
+tests
+*.pt
+*.pth
+*.mp4
+*.png
