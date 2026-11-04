@@ -4,6 +4,8 @@ Remove text watermarks and logos from videos automatically. No boxes or masks to
 
 UAV combines **SAM3 detection, SIFT tracking and shared watermark templates, and ProPainter video inpainting**. It handles static corner marks, moving text, rotating logos, and watermarks that appear intermittently.
 
+Built for fast GPU inference and consistent masks across frames: shared templates reduce detection flicker, trajectory checks reconnect missed observations, and overlapping repair windows improve temporal continuity.
+
 ## Demo
 
 One clip with four watermark behaviors. Processed with `high quality`. The animations below play directly in this README; full-resolution MP4 files are included in `docs/demo/`.
@@ -60,6 +62,12 @@ Use a fresh output directory for each run. The first run builds TensorRT engines
 1. **Detect and track.** SAM3 discovers watermarks every eight frames. SIFT estimates position, rotation, and scale. Instances of the same watermark share a template.
 2. **Build masks.** A second pass associates fragments and repairs trajectory gaps. Up to eight original-image views refine each shared template into a mask.
 3. **Restore the background.** ProPainter aligns neighboring frames with optical flow and fills the masked regions. Long videos are processed in overlapping segments.
+
+## Speed
+
+The included demo takes **about 50 seconds** on an **RTX 2080 Ti (11 GB)**: 12 seconds of video, 288 frames, 640×360, high-quality mode, including model initialization, mask generation, debug output, inpainting, and video encoding. That is **5.7 processed frames/s**. Existing engine and compiler caches were reused; first-time compilation takes longer.
+
+UAV uses TensorRT FP16, CUDA SIFT, GPU descriptor matching, CUDA Graphs, cached reference features, and overlapping CPU/GPU work. Runtime depends heavily on resolution, watermark count, and mask area. This is a single demo measurement, not a cross-project benchmark.
 
 ## Quality options
 
