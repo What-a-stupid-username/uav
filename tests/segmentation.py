@@ -105,7 +105,7 @@ class SegmentOrchestrationTests(unittest.TestCase):
             cfg=UAVConfig(source='synthetic',output=folder,fps=2,segment_seconds=3,segment_overlap=1)
             with (patch('uav.template_mask.frames.VideoFrames',Frames),
                   patch('uav.template_mask.runner.run',side_effect=runner),
-                  patch('uav.async_video_writer.AsyncVideoWriter',return_value=writer)):
+                  patch('uav.async_video_writer.AsyncVideoWriter',return_value=writer) as encoder):
                 result=run_segments(cfg,TemplateConfig(),SimpleNamespace(events=[]))
         self.assertEqual(len(decoded),1);self.assertTrue(decoded[0].closed)
         self.assertEqual(len(calls),3)
@@ -116,6 +116,7 @@ class SegmentOrchestrationTests(unittest.TestCase):
         self.assertEqual(len(emitted),23)
         self.assertTrue(result['complete']);self.assertEqual(result['output_frames'],23)
         writer.close.assert_called_once()
+        self.assertEqual(encoder.call_args.kwargs,dict(audio_source='synthetic',audio_start=0.,duration=11.5))
 
     def test_cli_accepts_multiple_and_repeated_sources(self):
         from uav.cli import build_parser
@@ -179,7 +180,7 @@ class SegmentFailureTests(unittest.TestCase):
             return dict(complete=True,skipped=False)
         with tempfile.TemporaryDirectory() as folder:
             root=Path(folder)
-            def writer(path,*a):path.touch();return Mock()
+            def writer(path,*a,**kw):path.touch();return Mock()
             cfg=UAVConfig(source='synthetic',output=folder,fps=2,segment_seconds=3,segment_overlap=1)
             with (patch('uav.template_mask.frames.VideoFrames',Frames),
                   patch('uav.template_mask.runner.run',side_effect=runner),

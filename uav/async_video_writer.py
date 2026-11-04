@@ -6,16 +6,26 @@ import torch
 from uav import ffmpeg
 
 
+def encoder_command(path,width,height,fps,*,audio_source=None,audio_start=0.,duration=None):
+    command=[ffmpeg.executable(),'-v','error','-nostdin','-y',
+        '-f','rawvideo','-pix_fmt','rgb24','-s',f'{width}x{height}','-r',str(fps),'-i','pipe:0']
+    if audio_source is not None:
+        command+=['-ss',str(audio_start),'-i',str(audio_source),
+                  '-map','0:v:0','-map','1:a:0?','-c:a','aac','-b:a','192k']
+    else:command+=['-an']
+    if duration is not None:command+=['-t',str(duration)]
+    return command+['-c:v','libx264','-preset','fast','-crf','18','-threads','2',
+                    '-pix_fmt','yuv420p','-movflags','+faststart',str(path)]
+
+
 class AsyncVideoWriter:
-    def __init__(self,path,width,height,fps,capacity=4):
+    def __init__(self,path,width,height,fps,capacity=4,*,audio_source=None,audio_start=0.,duration=None):
         self.capacity=capacity;self.slots=[];self.free=deque();self.pending=deque()
         self.executor=ThreadPoolExecutor(max_workers=1);self.stream=torch.cuda.Stream()
         self.wait_seconds=0.;self.wait_count=0;self.gaps=[];self.transfers=[];self.frames=0
         self.encode_seconds=0.;self.drain_seconds=0.
-        self.process=subprocess.Popen([ffmpeg.executable(),'-v','error','-nostdin','-y',
-            '-f','rawvideo','-pix_fmt','rgb24','-s',f'{width}x{height}','-r',str(fps),'-i','pipe:0',
-            '-an','-c:v','libx264','-preset','fast','-crf','18','-threads','2','-pix_fmt','yuv420p',
-            '-movflags','+faststart',str(path)],stdin=subprocess.PIPE)
+        self.process=subprocess.Popen(encoder_command(path,width,height,fps,
+            audio_source=audio_source,audio_start=audio_start,duration=duration),stdin=subprocess.PIPE)
 
     def save(self,rgb):
         if rgb.device.type!='cuda' or rgb.dtype!=torch.uint8:raise ValueError('CUDA uint8 RGB required')

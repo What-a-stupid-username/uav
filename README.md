@@ -57,6 +57,8 @@ For your own video:
 
 Use a fresh output directory for each run. The first run builds TensorRT engines and compiles CUDA kernels; later runs reuse the caches.
 
+Output keeps the original frame size, defaults to 24 fps, and includes the source's first audio track when present. Audio is trimmed to the processed interval and encoded as AAC.
+
 ## How it works
 
 1. **Detect and track.** SAM3 discovers watermarks every eight frames. SIFT estimates position, rotation, and scale. Instances of the same watermark share a template.
@@ -82,6 +84,8 @@ UAV uses TensorRT FP16, CUDA SIFT, GPU descriptor matching, CUDA Graphs, cached 
 
 `--debug` writes the mask/trajectory review page. `--no-repair` exports masks without inpainting.
 
+The startup coverage check skips videos whose detected watermark boxes cover more than 15% of the frame. Adjust or disable it with the [coverage options](docs/usage.md#parameters).
+
 ## Batch processing and Python
 
 	./docker/batch.sh ./batch-output /absolute/a.mp4 /absolute/b.mp4
@@ -96,10 +100,8 @@ Batch jobs reuse model weights. See the [usage guide](docs/usage.md) for the per
 
 ## Limitations
 
-- Output defaults to 24 fps at the original frame size. **Audio is not preserved.**
 - Long videos use 15-second segments with one second of overlap; short tails extend the preceding segment.
 - Faint or feature-poor marks can be missed. Large occlusions and complex backgrounds may leave artifacts.
-- A startup check skips videos whose detected watermark boxes cover more than 15% of the frame. Thresholds are configurable.
 
 ## License
 

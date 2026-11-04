@@ -27,7 +27,7 @@ Use python -m uav --help for all options. Flags after --high-quality override in
 ## Output
 
 - report.json: video status, configuration, and stage timings.
-- clip-01/repaired.mp4: repaired video without audio.
+- clip-01/repaired.mp4: repaired video with the source's first audio track, when present. Audio is encoded as AAC and trimmed to the processed interval; silent inputs remain silent.
 - clip-01/warnings.jsonl: uncertain intervals and actions taken.
 - --debug: review HTML, combined Stage1/Stage2 video, template overlays, and frame masks.
 - --no-repair: final masks only; requires SAM3 weights but no ProPainter weights.

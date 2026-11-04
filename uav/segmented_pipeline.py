@@ -31,7 +31,9 @@ def run_segments(config, template_config, session):
             if config.repair and writer is None:
                 h,w=frames(0).shape[:2]
                 # Start only after final masks pass policy validation, via the lazy adapter.
-                writer=_LazyWriter(output/'clip-01/repaired.mp4',w,h,config.fps)
+                writer=_LazyWriter(output/'clip-01/repaired.mp4',w,h,config.fps,
+                    audio_source=config.source,audio_start=frames.source_id(0)/frames.source_fps,
+                    duration=frames.count/frames.fps)
                 blend=LinearBlendWriter(writer,segments)
             result=run(config.source,folder,template_config,session=session,frames=view,
                        review=config.debug,repair=config.repair,write_masks=config.debug or (not config.repair and len(segments)==1),
@@ -78,15 +80,16 @@ def run_segments(config, template_config, session):
 
 
 class _LazyWriter:
-    def __init__(self,path,width,height,fps):
+    def __init__(self,path,width,height,fps,**encoder_options):
         self.path,self.width,self.height,self.fps=path,width,height,fps
         self.writer=None;self.closed=False
+        self.encoder_options=encoder_options
 
     def save(self,rgb):
         from .async_video_writer import AsyncVideoWriter
         if self.writer is None:
             self.path.parent.mkdir(parents=True,exist_ok=True)
-            self.writer=AsyncVideoWriter(self.path,self.width,self.height,self.fps)
+            self.writer=AsyncVideoWriter(self.path,self.width,self.height,self.fps,**self.encoder_options)
         self.writer.save(rgb)
 
     def close(self):
